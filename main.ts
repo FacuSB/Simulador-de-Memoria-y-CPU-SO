@@ -137,3 +137,49 @@ export class BloqueMemoria {
     this.pid = pid;
   }
 }
+
+// ------------------------------------------------------------------------------
+// 2. ADMINISTRADOR DE MEMORIA (1024 KB, ASIGNACIONES Y COALESCENCIA)
+// ------------------------------------------------------------------------------
+
+export class AdministradorMemoria {
+  private tamano_total: number;
+  private bloques: BloqueMemoria[];
+
+  constructor(tamano_total: number = 1024) {
+    this.tamano_total = tamano_total;
+    this.bloques = [new BloqueMemoria(0, tamano_total, true, null)];
+  }
+
+  // Getters y Setters
+  public getTamanoTotal(): number {
+    return this.tamano_total;
+  }
+  public setTamanoTotal(tamano: number): void {
+    this.tamano_total = tamano;
+  }
+
+  public getBloques(): BloqueMemoria[] {
+    return this.bloques;
+  }
+  public setBloques(bloques: BloqueMemoria[]): void {
+    this.bloques = bloques;
+  }
+
+  /**
+   * Recorre la lista de particiones y fusiona bloques libres contiguos en uno solo.
+   */
+  public coalescencia(): void {
+    let i = 0;
+    while (i < this.bloques.length - 1) {
+      const actual = this.bloques[i];
+      const siguiente = this.bloques[i + 1];
+
+      if (actual.isLibre() && siguiente.isLibre()) {
+        actual.setTamano(actual.getTamano() + siguiente.getTamano());
+        this.bloques.splice(i + 1, 1);
+      } else {
+        i++;
+      }
+    }
+  }
