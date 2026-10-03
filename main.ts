@@ -183,3 +183,15 @@ export class AdministradorMemoria {
       }
     }
   }
+
+  /** Busca el primer hueco libre donde quepa el proceso. */
+  public asignar_first_fit(proceso: Proceso): boolean {
+    for (let i = 0; i < this.bloques.length; i++) {
+      const bloque = this.bloques[i];
+      if (bloque.isLibre() && bloque.getTamano() >= proceso.getTamanoMemoria()) {
+        this._partir_y_asignar(i, bloque, proceso);
+        return true;
+      }
+    }
+    return false;
+  }
