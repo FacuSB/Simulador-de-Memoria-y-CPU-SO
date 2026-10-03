@@ -195,3 +195,26 @@ export class AdministradorMemoria {
     }
     return false;
   }
+
+  /** Busca el bloque libre que deje el menor desperdicio de espacio residual. */
+  public asignar_best_fit(proceso: Proceso): boolean {
+    let mejor_idx: number | null = null;
+    let menor_desperdicio = Infinity;
+
+    for (let i = 0; i < this.bloques.length; i++) {
+      const b = this.bloques[i];
+      if (b.isLibre() && b.getTamano() >= proceso.getTamanoMemoria()) {
+        const desperdicio = b.getTamano() - proceso.getTamanoMemoria();
+        if (desperdicio < menor_desperdicio) {
+          menor_desperdicio = desperdicio;
+          mejor_idx = i;
+        }
+      }
+    }
+
+    if (mejor_idx !== null) {
+      this._partir_y_asignar(mejor_idx, this.bloques[mejor_idx], proceso);
+      return true;
+    }
+    return false;
+  }
