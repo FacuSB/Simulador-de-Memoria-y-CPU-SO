@@ -91,3 +91,49 @@ export class Proceso {
     this.tiempo_bloqueo_restante = tiempo;
   }
 }
+
+/**
+ * Representa una partición contigua dentro del espacio total de la RAM.
+ */
+export class BloqueMemoria {
+  private inicio: number;
+  private tamano: number;
+  private libre: boolean;
+  private pid: string | null;
+
+  constructor(inicio: number, tamano: number, libre: boolean = true, pid: string | null = null) {
+    this.inicio = inicio;
+    this.tamano = tamano;
+    this.libre = libre;
+    this.pid = pid;
+  }
+
+  // Getters y Setters
+  public getInicio(): number {
+    return this.inicio;
+  }
+  public setInicio(inicio: number): void {
+    this.inicio = inicio;
+  }
+
+  public getTamano(): number {
+    return this.tamano;
+  }
+  public setTamano(tamano: number): void {
+    this.tamano = tamano;
+  }
+
+  public isLibre(): boolean {
+    return this.libre;
+  }
+  public setLibre(libre: boolean): void {
+    this.libre = libre;
+  }
+
+  public getPid(): string | null {
+    return this.pid;
+  }
+  public setPid(pid: string | null): void {
+    this.pid = pid;
+  }
+}
