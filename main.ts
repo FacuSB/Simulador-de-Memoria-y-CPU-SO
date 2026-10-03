@@ -218,3 +218,25 @@ export class AdministradorMemoria {
     }
     return false;
   }
+
+  /** Busca el bloque libre de mayor tamaño absoluto. */
+  public asignar_worst_fit(proceso: Proceso): boolean {
+    let peor_idx: number | null = null;
+    let mayor_tamano = -1;
+
+    for (let i = 0; i < this.bloques.length; i++) {
+      const b = this.bloques[i];
+      if (b.isLibre() && b.getTamano() >= proceso.getTamanoMemoria()) {
+        if (b.getTamano() > mayor_tamano) {
+          mayor_tamano = b.getTamano();
+          peor_idx = i;
+        }
+      }
+    }
+
+    if (peor_idx !== null) {
+      this._partir_y_asignar(peor_idx, this.bloques[peor_idx], proceso);
+      return true;
+    }
+    return false;
+  }
