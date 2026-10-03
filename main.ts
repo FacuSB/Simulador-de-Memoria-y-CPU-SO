@@ -40,4 +40,54 @@ export class Proceso {
     this.tiempo_cpu_total = tiempo_cpu_total;
     this.tiempo_cpu_restante = tiempo_cpu_total;
   }
+
+  // Getters y Setters
+  public getPid(): string {
+    return this.pid;
+  }
+  public setPid(pid: string): void {
+    this.pid = pid;
+  }
+
+  public getTamanoMemoria(): number {
+    return this.tamano_memoria;
+  }
+  public setTamanoMemoria(tamano: number): void {
+    this.tamano_memoria = tamano;
+  }
+
+  public getTiempoCpuTotal(): number {
+    return this.tiempo_cpu_total;
+  }
+  public setTiempoCpuTotal(tiempo: number): void {
+    this.tiempo_cpu_total = tiempo;
+  }
+
+  public getTiempoCpuRestante(): number {
+    return this.tiempo_cpu_restante;
+  }
+  public setTiempoCpuRestante(tiempo: number): void {
+    this.tiempo_cpu_restante = tiempo;
+  }
+
+  public getEstado(): EstadoProceso {
+    return this.estado;
+  }
+  public setEstado(estado: EstadoProceso): void {
+    this.estado = estado;
+  }
+
+  public getQuantumConsumido(): number {
+    return this.quantum_consumido;
+  }
+  public setQuantumConsumido(quantum: number): void {
+    this.quantum_consumido = quantum;
+  }
+
+  public getTiempoBloqueoRestante(): number {
+    return this.tiempo_bloqueo_restante;
+  }
+  public setTiempoBloqueoRestante(tiempo: number): void {
+    this.tiempo_bloqueo_restante = tiempo;
+  }
 }
