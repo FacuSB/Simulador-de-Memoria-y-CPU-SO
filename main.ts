@@ -240,3 +240,36 @@ export class AdministradorMemoria {
     }
     return false;
   }
+
+  /** Función interna: divide el bloque libre si sobra espacio y lo marca ocupado. */
+  private _partir_y_asignar(indice: number, bloque: BloqueMemoria, proceso: Proceso): void {
+    if (bloque.getTamano() > proceso.getTamanoMemoria()) {
+      const sobrante = bloque.getTamano() - proceso.getTamanoMemoria();
+      const nuevo_bloque_libre = new BloqueMemoria(
+        bloque.getInicio() + proceso.getTamanoMemoria(),
+        sobrante,
+        true,
+        null
+      );
+      bloque.setTamano(proceso.getTamanoMemoria());
+      bloque.setLibre(false);
+      bloque.setPid(proceso.getPid());
+      this.bloques.splice(indice + 1, 0, nuevo_bloque_libre);
+    } else {
+      bloque.setLibre(false);
+      bloque.setPid(proceso.getPid());
+    }
+  }
+
+  /** Libera la memoria de un proceso y ejecuta la coalescencia automática. */
+  public liberar(pid: string): boolean {
+    for (const b of this.bloques) {
+      if (b.getPid() === pid) {
+        b.setLibre(true);
+        b.setPid(null);
+        this.coalescencia();
+        return true;
+      }
+    }
+    return false;
+  }
