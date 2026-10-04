@@ -404,3 +404,28 @@ export class SimuladorSO {
     proceso.setEstado('NUEVO');
     this.cola_nuevos.push(proceso);
   }
+
+  /** Intenta ubicar el proceso en RAM según el algoritmo configurado. */
+  public intentar_asignar_memoria(proceso: Proceso): boolean {
+    if (this.algoritmo_memoria === 'FIRST_FIT') {
+      return this.memoria.asignar_first_fit(proceso);
+    } else if (this.algoritmo_memoria === 'BEST_FIT') {
+      return this.memoria.asignar_best_fit(proceso);
+    } else if (this.algoritmo_memoria === 'WORST_FIT') {
+      return this.memoria.asignar_worst_fit(proceso);
+    }
+    return false;
+  }
+
+  /** Permite forzar el paso del proceso en CPU al estado Bloqueado por E/S. */
+  public bloquear_proceso_actual(ticks_bloqueo: number = 2): void {
+    if (this.cpu_proceso !== null) {
+      const p = this.cpu_proceso;
+      p.setEstado('BLOQUEADO');
+      p.setTiempoBloqueoRestante(ticks_bloqueo);
+      this.cola_bloqueados.push(p);
+      console.log(`   [E/S] Proceso ${p.getPid()} se bloquea por ${ticks_bloqueo} ticks.`);
+      this.cpu_proceso = null;
+      this.cambios_contexto += 1;
+    }
+  }
