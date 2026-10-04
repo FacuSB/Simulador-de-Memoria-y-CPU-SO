@@ -318,3 +318,89 @@ export class AdministradorMemoria {
     }
   }
 }
+
+// ------------------------------------------------------------------------------
+// 3. MOTOR DEL SIMULADOR (TICKS Y PLANIFICADOR ROUND-ROBIN)
+// ------------------------------------------------------------------------------
+
+export class SimuladorSO {
+  private memoria: AdministradorMemoria;
+  private algoritmo_memoria: AlgoritmoMemoria;
+  private quantum_limite: number;
+
+  // Colas de procesos
+  private cola_nuevos: Proceso[] = [];
+  private cola_esperando_memoria: Proceso[] = [];
+  private cola_listos: Proceso[] = [];
+  private cola_bloqueados: Proceso[] = [];
+  private procesos_terminados: Proceso[] = [];
+
+  // Estado de CPU y estadísticas
+  private cpu_proceso: Proceso | null = null;
+  private reloj_tick: number = 0;
+  private cambios_contexto: number = 0;
+  private ticks_cpu_ocupada: number = 0;
+
+  constructor(algoritmo_memoria: AlgoritmoMemoria = 'FIRST_FIT', quantum: number = 2) {
+    this.memoria = new AdministradorMemoria(1024);
+    this.algoritmo_memoria = algoritmo_memoria;
+    this.quantum_limite = quantum;
+  }
+
+  // Getters y Setters
+  public getMemoria(): AdministradorMemoria {
+    return this.memoria;
+  }
+
+  public getAlgoritmoMemoria(): AlgoritmoMemoria {
+    return this.algoritmo_memoria;
+  }
+  public setAlgoritmoMemoria(algoritmo: AlgoritmoMemoria): void {
+    this.algoritmo_memoria = algoritmo;
+  }
+
+  public getQuantumLimite(): number {
+    return this.quantum_limite;
+  }
+  public setQuantumLimite(quantum: number): void {
+    this.quantum_limite = quantum;
+  }
+
+  public getColaNuevos(): Proceso[] {
+    return this.cola_nuevos;
+  }
+  public getColaEsperandoMemoria(): Proceso[] {
+    return this.cola_esperando_memoria;
+  }
+  public getColaListos(): Proceso[] {
+    return this.cola_listos;
+  }
+  public getColaBloqueados(): Proceso[] {
+    return this.cola_bloqueados;
+  }
+  public getProcesosTerminados(): Proceso[] {
+    return this.procesos_terminados;
+  }
+
+  public getCpuProceso(): Proceso | null {
+    return this.cpu_proceso;
+  }
+  public setCpuProceso(proceso: Proceso | null): void {
+    this.cpu_proceso = proceso;
+  }
+
+  public getRelojTick(): number {
+    return this.reloj_tick;
+  }
+  public getCambiosContexto(): number {
+    return this.cambios_contexto;
+  }
+  public getTicksCpuOcupada(): number {
+    return this.ticks_cpu_ocupada;
+  }
+
+  /** Ingresa un nuevo proceso al sistema. */
+  public agregar_proceso(proceso: Proceso): void {
+    proceso.setEstado('NUEVO');
+    this.cola_nuevos.push(proceso);
+  }
