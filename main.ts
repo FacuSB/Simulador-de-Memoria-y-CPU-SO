@@ -536,3 +536,32 @@ export class SimuladorSO {
     this.memoria.imprimir_mapa();
   }
 }
+
+// ------------------------------------------------------------------------------
+// 4. CASO DE PRUEBA Y EJECUCIÓN DEMOSTRATIVA
+// ------------------------------------------------------------------------------
+function main(): void {
+  console.log('INICIANDO SIMULADOR DISCRETO (SISTEMAS OPERATIVOS)...\n');
+
+  const simulador = new SimuladorSO('FIRST_FIT', 2);
+
+  const p1 = new Proceso('P1', 400, 4);
+  const p2 = new Proceso('P2', 350, 3);
+  const p3 = new Proceso('P3', 150, 2);
+
+
+  for (const p of [p1, p2, p3]) {
+    simulador.agregar_proceso(p);
+  }
+
+  for (let i = 0; i < 12; i++) {
+    simulador.avanzar_tick();
+  }
+}
+
+import { pathToFileURL } from 'node:url';
+
+// Ejecutar demo solo cuando se ejecuta este archivo directamente.
+if (typeof process !== 'undefined' && process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}
