@@ -273,3 +273,48 @@ export class AdministradorMemoria {
     }
     return false;
   }
+
+  /** Calcula memoria libre, ocupada, mayor bloque contiguo y fragmentación externa. */
+  public obtener_metricas(): MetricasMemoria {
+    const memoria_ocupada = this.bloques
+      .filter((b) => !b.isLibre())
+      .reduce((acc, b) => acc + b.getTamano(), 0);
+
+    const memoria_libre_total = this.bloques
+      .filter((b) => b.isLibre())
+      .reduce((acc, b) => acc + b.getTamano(), 0);
+
+    const huecos_libres = this.bloques
+      .filter((b) => b.isLibre())
+      .map((b) => b.getTamano());
+
+    const mayor_hueco = huecos_libres.length > 0 ? Math.max(...huecos_libres) : 0;
+    const porcentaje_ocupacion = (memoria_ocupada / this.tamano_total) * 100;
+
+    let frag_externa = 0.0;
+    if (memoria_libre_total > 0) {
+      frag_externa = (1.0 - mayor_hueco / memoria_libre_total) * 100.0;
+    }
+
+    return {
+      ocupada: memoria_ocupada,
+      libre_total: memoria_libre_total,
+      mayor_hueco,
+      porc_ocupacion: porcentaje_ocupacion,
+      frag_externa,
+    };
+  }
+
+  /** Muestra la tabla de bloques en consola. */
+  public imprimir_mapa(): void {
+    console.log('   [MAPA DE MEMORIA]');
+    for (const b of this.bloques) {
+      const fin = b.getInicio() + b.getTamano();
+      const estado_str = !b.isLibre() ? `OCUPADO por ${b.getPid()}` : 'LIBRE';
+      const inicioPad = String(b.getInicio()).padStart(4, ' ');
+      const finPad = String(fin).padStart(4, ' ');
+      const tamanoPad = String(b.getTamano()).padStart(4, ' ');
+      console.log(`   [${inicioPad} KB - ${finPad} KB] (${tamanoPad} KB) -> ${estado_str}`);
+    }
+  }
+}
