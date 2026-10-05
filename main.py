@@ -23,3 +23,14 @@ class Proceso:
         
         self.quantum_consumido = 0                  # Ticks consecutivos que lleva en CPU en su turno
         self.tiempo_bloqueo_restante = 0            # Ticks restantes que debe esperar en E/S
+
+
+class BloqueMemoria:
+    """
+    Representa una partición contigua dentro del espacio total de la RAM.
+    """
+    def __init__(self, inicio, tamano, libre=True, pid=None):
+        self.inicio = inicio                        # Dirección base en KB (ej: 0)
+        self.tamano = tamano                        # Tamaño de la partición en KB
+        self.libre = libre                          # True si está disponible, False si está ocupado
+        self.pid = pid                              # PID del proceso que lo ocupa (o None si está libre)
