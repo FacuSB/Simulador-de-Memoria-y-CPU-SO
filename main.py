@@ -314,3 +314,28 @@ class SimuladorSO:
         print(f"   Cola de Listos: {[proc.pid for proc in self.cola_listos]}")
         print(f"   Esperando Memoria: {[proc.pid for proc in self.cola_esperando_memoria]}")
         self.memoria.imprimir_mapa()
+
+
+# ------------------------------------------------------------------------------
+# 4. CASO DE PRUEBA Y EJECUCIÓN DEMOSTRATIVA
+# ------------------------------------------------------------------------------
+if __name__ == "__main__":
+    print("INICIANDO SIMULADOR DISCRETO (SISTEMAS OPERATIVOS)...\n")
+    
+    # Creamos el simulador con First-Fit y Quantum = 2
+    simulador = SimuladorSO(algoritmo_memoria="FIRST_FIT", quantum=2)
+
+    # Creamos un lote de procesos representativos
+    # PID, Tamaño Memoria (KB), Tiempo de CPU (ticks)
+    p1 = Proceso("P1", tamano_memoria=200, tiempo_cpu_total=4)
+    p2 = Proceso("P2", tamano_memoria=350, tiempo_cpu_total=3)
+    p3 = Proceso("P3", tamano_memoria=150, tiempo_cpu_total=2)
+    p4 = Proceso("P4", tamano_memoria=400, tiempo_cpu_total=3)
+
+    # Cargamos los procesos al simulador
+    for p in [p1, p2, p3, p4]:
+        simulador.agregar_proceso(p)
+
+    # Avanzamos la simulación tick a tick por 12 ciclos
+    for _ in range(12):
+        simulador.avanzar_tick()
