@@ -165,3 +165,152 @@ class AdministradorMemoria:
             fin = b.inicio + b.tamano
             estado_str = f"OCUPADO por {b.pid}" if not b.libre else "LIBRE"
             print(f"   [{b.inicio:4d} KB - {fin:4d} KB] ({b.tamano:4d} KB) -> {estado_str}")
+
+
+# ------------------------------------------------------------------------------
+# 3. MOTOR DEL SIMULADOR (TICKS Y PLANIFICADOR ROUND-ROBIN)
+# ------------------------------------------------------------------------------
+
+class SimuladorSO:
+    def __init__(self, algoritmo_memoria="FIRST_FIT", quantum=2):
+        self.memoria = AdministradorMemoria(tamano_total=1024)
+        self.algoritmo_memoria = algoritmo_memoria  # FIRST_FIT, BEST_FIT o WORST_FIT
+        self.quantum_limite = quantum
+        
+        # Colas de procesos
+        self.cola_nuevos = []
+        self.cola_esperando_memoria = []
+        self.cola_listos = []
+        self.cola_bloqueados = []
+        self.procesos_terminados = []
+        
+        # Estado de CPU y estadísticas
+        self.cpu_proceso = None
+        self.reloj_tick = 0
+        self.cambios_contexto = 0
+        self.ticks_cpu_ocupada = 0
+
+    def agregar_proceso(self, proceso):
+        """Ingresa un nuevo proceso al sistema."""
+        proceso.estado = "NUEVO"
+        self.cola_nuevos.append(proceso)
+
+    def intentar_asignar_memoria(self, proceso):
+        """Intenta ubicar el proceso en RAM según el algoritmo configurado."""
+        if self.algoritmo_memoria == "FIRST_FIT":
+            return self.memoria.asignar_first_fit(proceso)
+        elif self.algoritmo_memoria == "BEST_FIT":
+            return self.memoria.asignar_best_fit(proceso)
+        elif self.algoritmo_memoria == "WORST_FIT":
+            return self.memoria.asignar_worst_fit(proceso)
+        return False
+
+    def bloquear_proceso_actual(self, ticks_bloqueo=2):
+        """Permite forzar el paso del proceso en CPU al estado Bloqueado por E/S."""
+        if self.cpu_proceso is not None:
+            p = self.cpu_proceso
+            p.estado = "BLOQUEADO"
+            p.tiempo_bloqueo_restante = ticks_bloqueo
+            self.cola_bloqueados.append(p)
+            print(f"   [E/S] Proceso {p.pid} se bloquea por {ticks_bloqueo} ticks.")
+            self.cpu_proceso = None
+            self.cambios_contexto += 1
+
+    def avanzar_tick(self):
+        """Ejecuta un ciclo completo discreto (1 Tick de simulación)."""
+        self.reloj_tick += 1
+        print(f"\n{'='*25} TICK {self.reloj_tick} {'='*25}")
+
+        # ----------------------------------------------------------------------
+        # PASO A: Ingreso de procesos NUEVOS y reintento de ESPERANDO MEMORIA
+        # ----------------------------------------------------------------------
+        # Pasar de Nuevos a Esperando Memoria
+        while self.cola_nuevos:
+            p = self.cola_nuevos.pop(0)
+            p.estado = "ESPERANDO_MEMORIA"
+            self.cola_esperando_memoria.append(p)
+
+        # Intentar alojar en RAM a los que esperan memoria
+        i = 0
+        while i < len(self.cola_esperando_memoria):
+            p = self.cola_esperando_memoria[i]
+            if self.intentar_asignar_memoria(p):
+                p.estado = "LISTO"
+                self.cola_listos.append(p)
+                self.cola_esperando_memoria.pop(i)
+                print(f"   [MEMORIA] Proceso {p.pid} obtuvo memoria. Pasa a LISTO.")
+            else:
+                i += 1
+
+        # ----------------------------------------------------------------------
+        # PASO B: Actualizar cola de BLOQUEADOS (Entrada/Salida)
+        # ----------------------------------------------------------------------
+        j = 0
+        while j < len(self.cola_bloqueados):
+            p = self.cola_bloqueados[j]
+            p.tiempo_bloqueo_restante -= 1
+            if p.tiempo_bloqueo_restante <= 0:
+                p.estado = "LISTO"
+                self.cola_listos.append(p)
+                self.cola_bloqueados.pop(j)
+                print(f"   [E/S COMPLETADA] Proceso {p.pid} vuelve a cola de LISTOS.")
+            else:
+                j += 1
+
+        # ----------------------------------------------------------------------
+        # PASO C: Despachar CPU si está desocupada (FIFO desde Listos)
+        # ----------------------------------------------------------------------
+        if self.cpu_proceso is None and len(self.cola_listos) > 0:
+            self.cpu_proceso = self.cola_listos.pop(0)
+            self.cpu_proceso.estado = "EJECUTANDO"
+            self.cpu_proceso.quantum_consumido = 0
+            print(f"   [CPU] El proceso {self.cpu_proceso.pid} toma el procesador.")
+
+        # ----------------------------------------------------------------------
+        # PASO D: Ejecución de 1 Tick en CPU (Round-Robin)
+        # ----------------------------------------------------------------------
+        if self.cpu_proceso is not None:
+            self.ticks_cpu_ocupada += 1
+            p = self.cpu_proceso
+            p.tiempo_cpu_restante -= 1
+            p.quantum_consumido += 1
+
+            print(f"   [EJECUTANDO] PID: {p.pid} | Restante: {p.tiempo_cpu_restante} ticks | Quantum: {p.quantum_consumido}/{self.quantum_limite}")
+
+            # Subcaso D1: El proceso TERMINÓ
+            if p.tiempo_cpu_restante == 0:
+                p.estado = "TERMINADO"
+                print(f"   [FINALIZADO] Proceso {p.pid} finalizó. Libera memoria y CPU.")
+                self.memoria.liberar(p.pid)
+                self.procesos_terminados.append(p)
+                self.cpu_proceso = None
+
+            # Subcaso D2: Se agotó el QUANTUM
+            elif p.quantum_consumido == self.quantum_limite:
+                if len(self.cola_listos) > 0:
+                    print(f"   [FIN QUANTUM] {p.pid} agotó Quantum. Vuelve al final de LISTOS.")
+                    p.estado = "LISTO"
+                    p.quantum_consumido = 0
+                    self.cola_listos.append(p)
+                    self.cpu_proceso = None
+                    self.cambios_contexto += 1
+                else:
+                    # Si no hay nadie más en cola, renueva quantum y continúa
+                    print(f"   [RENOVACIÓN] {p.pid} continúa en CPU (cola de Listos vacía).")
+                    p.quantum_consumido = 0
+        else:
+            print("   [CPU OCIOSA] Ningún proceso listo para ejecutar.")
+
+        # ----------------------------------------------------------------------
+        # PASO E: Reporte de Métricas del Tick
+        # ----------------------------------------------------------------------
+        m = self.memoria.obtener_metricas()
+        uso_cpu = (self.ticks_cpu_ocupada / self.reloj_tick) * 100
+        
+        print("\n   --- MÉTRICAS EN TIEMPO REAL ---")
+        print(f"   Uso de CPU Acumulado: {uso_cpu:.2f}% | Cambios de Contexto: {self.cambios_contexto}")
+        print(f"   Memoria Ocupada: {m['ocupada']} KB ({m['porc_ocupacion']:.1f}%) | Libre Total: {m['libre_total']} KB")
+        print(f"   Mayor Hueco Contiguo: {m['mayor_hueco']} KB | Fragmentación Externa: {m['frag_externa']:.2f}%")
+        print(f"   Cola de Listos: {[proc.pid for proc in self.cola_listos]}")
+        print(f"   Esperando Memoria: {[proc.pid for proc in self.cola_esperando_memoria]}")
+        self.memoria.imprimir_mapa()
