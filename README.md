@@ -85,12 +85,3 @@ npm run coverage
 - `BEST_FIT`: elige el hueco con menor desperdicio
 - `WORST_FIT`: elige el hueco más grande disponible
 
-## Estado del proyecto
-
-El proyecto cuenta con 20 tests unitarios cubriendo:
-
-- creación y validación de procesos
-- asignación y liberación de memoria
-- coalescencia y métricas
-- planificación de CPU
-- avance de ticks y finalización de procesos
