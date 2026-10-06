@@ -1,28 +1,52 @@
 # Simulador de Memoria y CPU - Sistemas Operativos
 
-Simulador discreto de gestión de memoria (particiones contiguas) y planificación de CPU (Round-Robin) desarrollado para la cátedra de Sistemas Operativos.
+Simulador discreto de gestión de memoria y planificación de CPU para la materia de Sistemas Operativos. El proyecto modela procesos, asignación contigua de memoria y ejecución por round-robin con métricas en tiempo real.
 
 ## Características
 
-- **Gestión de Memoria**: Asignación contigua con algoritmos First Fit, Best Fit y Worst Fit
-- **Planificación de CPU**: Round-Robin con quantum configurable
-- **Coalescencia**: Fusión automática de bloques libres contiguos
-- **Métricas en tiempo real**: Uso de CPU, fragmentación externa, ocupación de memoria
-- **Bloqueo por E/S**: Simulación de operaciones de entrada/salida
-- **Dual implementation**: Implementaciones en TypeScript y Python
+- Gestión de memoria con algoritmos First Fit, Best Fit y Worst Fit
+- Simulación de procesos con estados y tiempos de CPU
+- Round-robin con quantum configurable
+- Coalescencia automática de bloques libres
+- Métricas de ocupación, huecos y fragmentación externa
+- Tests unitarios con Vitest
+- Implementación principal en TypeScript
 
-## Estructura del Proyecto
+## Estructura del proyecto
 
-```
-├── main.ts              # Implementación principal en TypeScript
-├── main.py              # Implementación equivalente en Python
+```text
+SISTEMASOPERATIVOSAE2/
+├── src/
+│   ├── main.ts
+│   ├── types.ts
+│   ├── memoria/
+│   │   ├── BloqueMemoria.ts
+│   │   └── AdministradorMemoria.ts
+│   └── planificacion/
+│       ├── Proceso.ts
+│       └── SimuladorSO.ts
 ├── tests/
-│   └── main.spec.ts     # Tests unitarios (Vitest)
-├── package.json         # Dependencias del proyecto
-├── tsconfig.json        # Configuración de TypeScript
-├── vitest.config.ts     # Configuración de Vitest
-└── .gitignore
+│   ├── proceso.spec.ts
+│   ├── memoria/
+│   │   └── administrador-memoria.spec.ts
+│   └── simulador/
+│       └── simulador.spec.ts
+├── main.py
+├── package.json
+├── tsconfig.json
+├── vitest.config.ts
+├── README.md
+├── .gitignore
+└── node_modules/
 ```
+
+## Archivos principales
+
+- `src/main.ts`: punto de entrada del simulador y exportaciones públicas
+- `src/memoria/AdministradorMemoria.ts`: lógica de gestión de memoria y métricas
+- `src/memoria/BloqueMemoria.ts`: representación de particiones RAM
+- `src/planificacion/Proceso.ts`: PCB del proceso
+- `src/planificacion/SimuladorSO.ts`: motor de ejecución y planificación
 
 ## Instalación
 
@@ -32,14 +56,8 @@ npm install
 
 ## Ejecución
 
-**TypeScript:**
 ```bash
-npx tsx main.ts
-```
-
-**Python:**
-```bash
-python main.py
+npx tsx src/main.ts
 ```
 
 ## Tests
@@ -48,17 +66,31 @@ python main.py
 npm test
 ```
 
-## Clases Principales
+También podes correr cobertura:
 
-| Clase | Descripción |
-|-------|-------------|
-| `Proceso` | Bloque de Control de Proceso (PCB) con estado, memoria y CPU |
-| `BloqueMemoria` | Partición contigua en RAM (libre u ocupada) |
-| `AdministradorMemoria` | Gestiona 1024 KB con First/Best/Worst Fit |
-| `SimuladorSO` | Motor del simulador con Round-Robin y métricas |
+```bash
+npm run coverage
+```
 
-## Algoritmos de Asignación de Memoria
+## Clases principales
 
-- **First Fit**: Asigna al primer hueco libre suficientemente grande
-- **Best Fit**: Asigna al hueco que genera menor desperdicio
-- **Worst Fit**: Asigna al hueco más grande disponible
+- `Proceso`: representa cada proceso con su estado, memoria y CPU restante
+- `BloqueMemoria`: define una partición contigua en memoria
+- `AdministradorMemoria`: asigna memoria y calcula métricas
+- `SimuladorSO`: gestiona procesos, la cola de espera, el CPU y el tick del sistema
+
+## Algoritmos de asignación
+
+- `FIRST_FIT`: asigna en el primer hueco que cumple
+- `BEST_FIT`: elige el hueco con menor desperdicio
+- `WORST_FIT`: elige el hueco más grande disponible
+
+## Estado del proyecto
+
+El proyecto cuenta con 20 tests unitarios cubriendo:
+
+- creación y validación de procesos
+- asignación y liberación de memoria
+- coalescencia y métricas
+- planificación de CPU
+- avance de ticks y finalización de procesos
